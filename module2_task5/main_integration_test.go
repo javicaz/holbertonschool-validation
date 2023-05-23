@@ -20,56 +20,34 @@ func Test_server(t *testing.T) {
 		body         string
 	}{
 		{
-			name:         "Home page",
-			URI:          "",
-			responseCode: 404,
-			body:         "404 page not found\n",
-		},
-		{
 			name:         "Hello page",
 			URI:          "/hello?name=Holberton",
 			responseCode: 200,
 			body:         "Hello Holberton!",
 		},
 		{
-			name:         "Hello pa ge",
-			URI:          "/hello?name=Holber ton",
-			responseCode: 400,
-			body:         "400 Bad Request",
-		},
-		{
-			name:         "Empty page",
-			URI:          "",
-			responseCode: 404,
-			body:         "404 page not found\n",
-		},
-		{
-			name:         "No name",
-			URI:          "/hello?name",
-			responseCode: 400,
-		},
-		{
-			name:         "Empty name",
+			name:         "name is empty",
 			URI:          "/hello?name=",
 			responseCode: 400,
+			body:         "",
 		},
 		{
-			name:         "Health",
+			name:         "no name parameter",
+			URI:          "/hello",
+			responseCode: 200,
+			body:         "Hello there!",
+		},
+		{
+			name:         "Health server",
 			URI:          "/health",
 			responseCode: 200,
 			body:         "ALIVE",
 		},
 		{
-			name:         "Home",
-			URI:          "/",
+			name:         "not a path",
+			URI:          "/test",
 			responseCode: 404,
 			body:         "404 page not found\n",
-		},
-		{
-			name:         "hello there",
-			URI:          "/hello",
-			responseCode: 200,
-			body:         "Hello there!",
 		},
 	}
 

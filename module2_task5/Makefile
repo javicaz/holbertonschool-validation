@@ -1,41 +1,43 @@
-build:   ## Generate the website from the markdown and configuration files in the directory dist/
-    go build
-    hugo > /dev/null 2>&1
-    make check
+help:           ## Show this help.
+	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | sed -e 's/\\$$//' | sed -e 's/##//'
 
-clean:    ## Cleanup the content of the directoy dist/
-    rm -rf ./dist/ awesome-api awesome-api.log coverage-units.out coverage-integrations.out
-    make stop
+build:     ## Generate a website and an API application.
+	@go build
+	@hugo > /dev/null 2>&1
 
-post:     ## Create a new blog post whose filename and title come from the environment variables POST_TITLE and POST_NAME
-    hugo new posts/$(POST_NAME).md
-    sed -i '/title:/c\title: "$(POST_TITLE)"' content/posts/$(POST_NAME).md
+run:            ## Run the application in background, and write logs into a file named awesome-api.log
+	@make build
+	./awesome-api > ./awesome-api.log 2>&1 &
 
-check: ## Checking markdown files
-    markdownlint content/ && markdown-link-check content/posts/*.md
+lint:           ## Does the linting of the program using golangci-lint
+	/root/go/bin/golangci-lint run
 
-validate: ## validates using Holberton tool
-    python3 opt/W3C-Validator/w3c_validator.py dist/index.html || true
+stop:           ## Stop the application
+	pkill awesome-api
 
-run: ## runs the api and logs it
-    ./awesome-api > ./awesome-api.log 2>&1 &
+clean:          ## Cleanup the content of the directory dist/ and stop the application. Delete the binary awesome-api and the log file awesome-api.log
+	pkill awesome-api || true
+	rm -rf awesome-api awesome-api.log coverage-units.out coverage-integrations.out
+	rm -rf dist/*
 
-stop: ## kills the process with PID number
-    pkill awesome-api
+post:           ## Create a new blog post
+	hugo new posts/$(POST_NAME).md
+	sed -i 's/title: .*/title: "$(POST_TITLE)"/' content/posts/$(POST_NAME).md
 
-lint: ## check for potential errors
-    golangci-lint run
+test:          ## Tests for browser responses
+	make unit-tests
+	make integration-tests
+	make validate
 
-test: ## test hitting the endpoint
-    make unit-tests
-    make integration-tests
-    make validate
+unit-tests:    ## Execute (successfully) the Golang unit tests
+	go test -v -short -coverprofile=coverage-units.out
 
-unit-tests: ## run unit-tests
-    go test -v -short -coverprofile=coverage-units.out
+integration-tests:     ## Execute (successfully) the Golang integration tests
+	go test -v -tags=integration -coverprofile=coverage-integrations.out
 
-integration-tests: ## run intregrated tests
-    go test -v  -coverprofile=coverage-integrations.out
+check:         ## Check if there are dead link or a badly written Markdown file
+	markdownlint ./content/posts/*.md
+	markdown-link-check ./content/posts/*.md
 
-help: ## Show this help usage
-    @fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | sed -e 's/\\$$//' | sed -e 's/##//'
+validate:      ## look if the generated HTML respects the W3C syntax
+	python3 /opt/W3C-Validator/w3c_validator.py ./dist/index.html || true
